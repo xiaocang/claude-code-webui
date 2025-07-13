@@ -35,6 +35,8 @@ export function EnterModeMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
         title="Enter key behavior settings"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         <EllipsisHorizontalIcon className="w-4 h-4" />
       </button>
