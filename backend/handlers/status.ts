@@ -4,14 +4,15 @@
  */
 
 import { Context } from "hono";
-import type { RequestStatus, StatusResponse } from "../../shared/types.ts";
+import type { StatusResponse } from "../../shared/types.ts";
+import { RequestStatus } from "../../shared/types.ts";
 import { getRequestStatus } from "../streaming/streamingFileManager.ts";
 
 /**
  * Handles GET /api/status/:requestId requests
  * Returns the current status of a streaming request
  */
-export async function handleStatusRequest(c: Context): Promise<Response> {
+export function handleStatusRequest(c: Context): Response {
   const requestId = c.req.param("requestId");
 
   // Validate requestId
