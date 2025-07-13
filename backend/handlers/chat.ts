@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 import { Context } from "hono";
 import { AbortError, query } from "@anthropic-ai/claude-code";
 import type { ChatRequest, StreamResponse } from "../../shared/types.ts";
