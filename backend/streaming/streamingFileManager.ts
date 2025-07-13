@@ -3,6 +3,7 @@
  * Handles writing, reading, and cleaning up streaming response files
  */
 
+import process from "node:process";
 import type { Runtime } from "../runtime/types.ts";
 import type { StreamResponse } from "../../shared/types.ts";
 import { RequestStatus } from "../../shared/types.ts";
@@ -40,17 +41,21 @@ export function stopCleanupInterval() {
 }
 
 /**
- * Get the streaming directory path for a project
+ * Get the streaming directory path for a project relative to current working directory
  */
 export function getStreamingDir(
   encodedProjectName: string,
   runtime: Runtime,
 ): string {
-  const homeDir = runtime.getEnv("HOME");
-  if (!homeDir) {
-    throw new Error("HOME environment variable not found");
+  // Check if there's a custom streaming base directory set in environment
+  const customDir = runtime.getEnv("CLAUDE_STREAMING_DIR");
+  if (customDir) {
+    return `${customDir}/${encodedProjectName}`;
   }
-  return `${homeDir}/.claude/projects/${encodedProjectName}/streaming`;
+
+  // Otherwise, use current working directory
+  const cwd = process.cwd();
+  return `${cwd}/.streaming/${encodedProjectName}`;
 }
 
 /**
