@@ -84,6 +84,7 @@ interface PermissionDialogProps {
   onAllowPermanent: () => void;
   onDeny: () => void;
   onClose: () => void;
+  shiftDown?: boolean;
   // Optional extension point for custom button styling (e.g., demo effects)
   getButtonClassName?: (
     buttonType: "allow" | "allowPermanent" | "deny",
@@ -98,6 +99,7 @@ export function PermissionDialog({
   onAllowPermanent,
   onDeny,
   onClose,
+  shiftDown = false,
   getButtonClassName = (_, defaultClassName) => defaultClassName, // Default: no modification
 }: PermissionDialogProps) {
   if (!isOpen) return null;
@@ -107,7 +109,9 @@ export function PermissionDialog({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div
+      className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm transition-all duration-300 ${shiftDown ? "pt-40 sm:pt-24" : ""}`}
+    >
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-md w-full mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">

@@ -14,6 +14,7 @@ interface SettingsMenuProps {
   onPlanModeToggle: () => void;
   authMode: AuthMode;
   onAuthModeToggle: () => void;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
 export function SettingsMenu({
@@ -21,9 +22,15 @@ export function SettingsMenu({
   onPlanModeToggle,
   authMode,
   onAuthModeToggle,
+  onOpenChange,
 }: SettingsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Notify parent when open state changes
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -80,7 +87,7 @@ export function SettingsMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden min-w-[200px]">
+        <div className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden min-w-[200px] z-40">
           {/* Plan Mode Toggle */}
           <button
             type="button"

@@ -32,6 +32,7 @@ export function ChatPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
 
   // Extract and normalize working directory from URL
   const workingDirectory = (() => {
@@ -502,6 +503,7 @@ export function ChatPage() {
                 const nextIndex = (currentIndex + 1) % modes.length;
                 setAuthMode(modes[nextIndex]);
               }}
+              onOpenChange={setIsSettingsMenuOpen}
             />
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
           </div>
@@ -591,6 +593,7 @@ export function ChatPage() {
           onAllowPermanent={handlePermissionAllowPermanent}
           onDeny={handlePermissionDeny}
           onClose={closePermissionDialog}
+          shiftDown={isSettingsMenuOpen}
         />
       )}
     </div>
