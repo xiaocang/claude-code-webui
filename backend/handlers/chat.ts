@@ -89,7 +89,7 @@ async function* executeClaudeCommand(
   debugMode?: boolean,
 ): AsyncGenerator<StreamResponse> {
   let abortController: AbortController;
-  let originalApiKey: string | undefined; // Move to function scope
+  let originalApiKey: string | undefined;
   const encodedProjectName = getEncodedProjectName(workingDirectory);
 
   try {
@@ -115,25 +115,33 @@ async function* executeClaudeCommand(
     const executionConfig = getClaudeExecutionConfig(claudePath, runtime);
 
     // Configure authentication mode if specified
-    if (authMode === 'api_key') {
+    if (authMode === "api_key") {
       // Force API key mode - ensure ANTHROPIC_API_KEY is available
       const apiKey = runtime.getEnv("ANTHROPIC_API_KEY");
       if (!apiKey) {
-        throw new Error("API Key mode requested but ANTHROPIC_API_KEY not found");
+        throw new Error(
+          "API Key mode requested but ANTHROPIC_API_KEY not found",
+        );
       }
       if (debugMode) {
-        console.debug(`[DEBUG] Auth mode: ${authMode} - using existing API key`);
+        console.debug(
+          `[DEBUG] Auth mode: ${authMode} - using existing API key`,
+        );
       }
-    } else if (authMode === 'subscription') {
+    } else if (authMode === "subscription") {
       // Force subscription mode by temporarily clearing API key
       originalApiKey = runtime.getEnv("ANTHROPIC_API_KEY");
       if (originalApiKey) {
         // Temporarily unset API key to force subscription mode
-        if (typeof process !== 'undefined' && process.env) {
-          delete process.env.ANTHROPIC_API_KEY;
+        try {
+          Deno.env.delete("ANTHROPIC_API_KEY");
+        } catch {
+          // Ignore errors if running in Node.js or other environments
         }
         if (debugMode) {
-          console.debug(`[DEBUG] Auth mode: ${authMode} - temporarily cleared API key`);
+          console.debug(
+            `[DEBUG] Auth mode: ${authMode} - temporarily cleared API key`,
+          );
         }
       }
     }
@@ -221,12 +229,16 @@ async function* executeClaudeCommand(
     }
   } finally {
     // Restore original API key if it was temporarily modified
-    if (authMode === 'subscription' && originalApiKey) {
-      if (typeof process !== 'undefined' && process.env) {
-        process.env.ANTHROPIC_API_KEY = originalApiKey;
+    if (authMode === "subscription" && originalApiKey) {
+      try {
+        Deno.env.set("ANTHROPIC_API_KEY", originalApiKey);
+      } catch {
+        // Ignore errors if running in Node.js or other environments
       }
       if (debugMode) {
-        console.debug(`[DEBUG] Restored original API key after subscription mode`);
+        console.debug(
+          `[DEBUG] Restored original API key after subscription mode`,
+        );
       }
     }
 

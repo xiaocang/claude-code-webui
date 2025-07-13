@@ -16,8 +16,9 @@ import { useAbortController } from "../hooks/chat/useAbortController";
 import { useAutoHistoryLoader } from "../hooks/useHistoryLoader";
 import { useNetworkRecovery } from "../hooks/useNetworkRecovery";
 import { ThemeToggle } from "./chat/ThemeToggle";
-import { AuthModeToggle } from "./chat/AuthModeToggle";
 import { HistoryButton } from "./chat/HistoryButton";
+import { SettingsMenu } from "./chat/SettingsMenu";
+import { usePlanMode } from "../hooks/usePlanMode";
 import { ChatInput } from "./chat/ChatInput";
 import { ChatMessages } from "./chat/ChatMessages";
 import { PermissionDialog } from "./PermissionDialog";
@@ -50,12 +51,8 @@ export function ChatPage() {
   const isLoadedConversation = !!sessionId && !isHistoryView;
 
   const { theme, toggleTheme } = useTheme();
-  const {
-    authMode,
-    setAuthMode,
-    currentAuthStatus,
-    setCurrentAuthStatus,
-  } = useAuthMode();
+  const { authMode, setAuthMode, setCurrentAuthStatus } = useAuthMode();
+  const { planMode, togglePlanMode } = usePlanMode();
   const { processStreamLine } = useClaudeStreaming();
   const { abortRequest, createAbortHandler } = useAbortController();
 
@@ -494,12 +491,13 @@ export function ChatPage() {
           </div>
           <div className="flex items-center gap-3">
             {!isHistoryView && <HistoryButton onClick={handleHistoryClick} />}
-            <AuthModeToggle
+            <SettingsMenu
+              planMode={planMode}
+              onPlanModeToggle={togglePlanMode}
               authMode={authMode}
-              currentAuthStatus={currentAuthStatus}
-              onToggle={() => {
+              onAuthModeToggle={() => {
                 // Cycle through auth modes: auto -> api_key -> subscription -> auto
-                const modes = ['auto', 'api_key', 'subscription'] as const;
+                const modes = ["auto", "api_key", "subscription"] as const;
                 const currentIndex = modes.indexOf(authMode);
                 const nextIndex = (currentIndex + 1) % modes.length;
                 setAuthMode(modes[nextIndex]);
