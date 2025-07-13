@@ -10,6 +10,7 @@ export interface ChatRequest {
   requestId: string;
   allowedTools?: string[];
   workingDirectory?: string;
+  authMode?: 'api_key' | 'subscription' | 'auto';
 }
 
 export interface AbortRequest {

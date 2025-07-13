@@ -17,6 +17,7 @@ export interface StreamingContext {
     toolUseId: string,
   ) => void;
   onAbortRequest?: () => void;
+  onAuthStatusUpdate?: (apiKeySource: string) => void;
 }
 
 /**

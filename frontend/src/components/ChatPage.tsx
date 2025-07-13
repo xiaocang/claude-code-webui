@@ -8,6 +8,7 @@ import type {
   StreamResponse,
 } from "../types";
 import { useTheme } from "../hooks/useTheme";
+import { useAuthMode, mapApiKeySourceToAuthStatus } from "../hooks/useAuthMode";
 import { useClaudeStreaming } from "../hooks/useClaudeStreaming";
 import { useChatState } from "../hooks/chat/useChatState";
 import { usePermissions } from "../hooks/chat/usePermissions";
@@ -15,6 +16,7 @@ import { useAbortController } from "../hooks/chat/useAbortController";
 import { useAutoHistoryLoader } from "../hooks/useHistoryLoader";
 import { useNetworkRecovery } from "../hooks/useNetworkRecovery";
 import { ThemeToggle } from "./chat/ThemeToggle";
+import { AuthModeToggle } from "./chat/AuthModeToggle";
 import { HistoryButton } from "./chat/HistoryButton";
 import { ChatInput } from "./chat/ChatInput";
 import { ChatMessages } from "./chat/ChatMessages";
@@ -48,6 +50,12 @@ export function ChatPage() {
   const isLoadedConversation = !!sessionId && !isHistoryView;
 
   const { theme, toggleTheme } = useTheme();
+  const {
+    authMode,
+    setAuthMode,
+    currentAuthStatus,
+    setCurrentAuthStatus,
+  } = useAuthMode();
   const { processStreamLine } = useClaudeStreaming();
   const { abortRequest, createAbortHandler } = useAbortController();
 
@@ -197,6 +205,10 @@ export function ChatPage() {
           shouldAbort = true;
           await createAbortHandler(requestId)();
         },
+        onAuthStatusUpdate: (apiKeySource: string) => {
+          const status = mapApiKeySourceToAuthStatus(apiKeySource);
+          setCurrentAuthStatus(status);
+        },
       };
 
       try {
@@ -209,6 +221,7 @@ export function ChatPage() {
             ...(currentSessionId ? { sessionId: currentSessionId } : {}),
             allowedTools: tools || allowedTools,
             ...(workingDirectory ? { workingDirectory } : {}),
+            authMode,
           } as ChatRequest),
         });
 
@@ -274,6 +287,7 @@ export function ChatPage() {
       hasShownInitMessage,
       currentAssistantMessage,
       workingDirectory,
+      authMode,
       generateRequestId,
       clearInput,
       startRequest,
@@ -289,6 +303,7 @@ export function ChatPage() {
       createAbortHandler,
       trackMessage,
       resetTracking,
+      setCurrentAuthStatus,
       handleNetworkError,
       isRecovering,
     ],
@@ -479,6 +494,17 @@ export function ChatPage() {
           </div>
           <div className="flex items-center gap-3">
             {!isHistoryView && <HistoryButton onClick={handleHistoryClick} />}
+            <AuthModeToggle
+              authMode={authMode}
+              currentAuthStatus={currentAuthStatus}
+              onToggle={() => {
+                // Cycle through auth modes: auto -> api_key -> subscription -> auto
+                const modes = ['auto', 'api_key', 'subscription'] as const;
+                const currentIndex = modes.indexOf(authMode);
+                const nextIndex = (currentIndex + 1) % modes.length;
+                setAuthMode(modes[nextIndex]);
+              }}
+            />
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
           </div>
         </div>

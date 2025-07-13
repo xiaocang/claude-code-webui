@@ -10,6 +10,7 @@ export type {
   ResumeResponse,
   StatusResponse,
   RequestStatus,
+  ChatRequest,
 } from "../../shared/types";
 
 // Chat message for user/assistant interactions (not part of SDKMessage)
@@ -109,7 +110,6 @@ export function isToolResultMessage(
 // Re-export shared types
 export type {
   StreamResponse,
-  ChatRequest,
   ProjectsResponse,
   ProjectInfo,
 } from "../../shared/types";

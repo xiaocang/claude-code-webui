@@ -72,6 +72,7 @@ function getEncodedProjectName(workingDirectory?: string): string | null {
  * @param sessionId - Optional session ID for conversation continuity
  * @param allowedTools - Optional array of allowed tool names
  * @param workingDirectory - Optional working directory for Claude execution
+ * @param authMode - Optional authentication mode preference
  * @param debugMode - Enable debug logging
  * @returns AsyncGenerator yielding StreamResponse objects
  */
@@ -84,9 +85,11 @@ async function* executeClaudeCommand(
   sessionId?: string,
   allowedTools?: string[],
   workingDirectory?: string,
+  authMode?: string,
   debugMode?: boolean,
 ): AsyncGenerator<StreamResponse> {
   let abortController: AbortController;
+  let originalApiKey: string | undefined; // Move to function scope
   const encodedProjectName = getEncodedProjectName(workingDirectory);
 
   try {
@@ -111,12 +114,39 @@ async function* executeClaudeCommand(
     // Get Claude Code execution configuration for migrate-installer compatibility
     const executionConfig = getClaudeExecutionConfig(claudePath, runtime);
 
+    // Configure authentication mode if specified
+    if (authMode === 'api_key') {
+      // Force API key mode - ensure ANTHROPIC_API_KEY is available
+      const apiKey = runtime.getEnv("ANTHROPIC_API_KEY");
+      if (!apiKey) {
+        throw new Error("API Key mode requested but ANTHROPIC_API_KEY not found");
+      }
+      if (debugMode) {
+        console.debug(`[DEBUG] Auth mode: ${authMode} - using existing API key`);
+      }
+    } else if (authMode === 'subscription') {
+      // Force subscription mode by temporarily clearing API key
+      originalApiKey = runtime.getEnv("ANTHROPIC_API_KEY");
+      if (originalApiKey) {
+        // Temporarily unset API key to force subscription mode
+        if (typeof process !== 'undefined' && process.env) {
+          delete process.env.ANTHROPIC_API_KEY;
+        }
+        if (debugMode) {
+          console.debug(`[DEBUG] Auth mode: ${authMode} - temporarily cleared API key`);
+        }
+      }
+    }
+    // For 'auto' mode, don't modify environment variables
+
+    const finalExecutionConfig = executionConfig;
+
     for await (
       const sdkMessage of query({
         prompt: processedMessage,
         options: {
           abortController,
-          ...executionConfig, // Use auto-detected execution configuration
+          ...finalExecutionConfig, // Use auth-configured execution configuration
           ...(sessionId ? { resume: sessionId } : {}),
           ...(allowedTools ? { allowedTools } : {}),
           ...(workingDirectory ? { cwd: workingDirectory } : {}),
@@ -190,6 +220,16 @@ async function* executeClaudeCommand(
       yield errorResponse;
     }
   } finally {
+    // Restore original API key if it was temporarily modified
+    if (authMode === 'subscription' && originalApiKey) {
+      if (typeof process !== 'undefined' && process.env) {
+        process.env.ANTHROPIC_API_KEY = originalApiKey;
+      }
+      if (debugMode) {
+        console.debug(`[DEBUG] Restored original API key after subscription mode`);
+      }
+    }
+
     // Clean up AbortController from map
     if (requestAbortControllers.has(requestId)) {
       requestAbortControllers.delete(requestId);
@@ -230,6 +270,7 @@ export async function handleChatRequest(
             chatRequest.sessionId,
             chatRequest.allowedTools,
             chatRequest.workingDirectory,
+            chatRequest.authMode,
             debugMode,
           )
         ) {

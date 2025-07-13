@@ -30,6 +30,11 @@ export function useStreamParser() {
       claudeData: Extract<SDKMessage, { type: "system" }>,
       context: StreamingContext,
     ) => {
+      // Update authentication status if available
+      if (claudeData.apiKeySource && context.onAuthStatusUpdate) {
+        context.onAuthStatusUpdate(claudeData.apiKeySource);
+      }
+
       // Check if this is an init message and if we should show it
       if (claudeData.subtype === "init") {
         // Mark that we've received init
