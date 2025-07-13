@@ -54,23 +54,30 @@ export function ChatInput({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === KEYBOARD_SHORTCUTS.SUBMIT && !isComposing) {
       if (enterBehavior === "newline") {
-        // Newline mode: Enter adds newline, Shift+Enter sends
-        if (e.shiftKey) {
-          e.preventDefault();
-          onSubmit();
-        }
-        // Enter is handled naturally by textarea (adds newline)
+        handleNewlineModeKeyDown(e);
       } else {
-        // Send mode: Enter sends, Shift+Enter adds newline
-        if (!e.shiftKey) {
-          e.preventDefault();
-          onSubmit();
-        }
-        // Shift+Enter is handled naturally by textarea (adds newline)
+        handleSendModeKeyDown(e);
       }
     }
   };
 
+  const handleNewlineModeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Newline mode: Enter adds newline, Shift+Enter sends
+    if (e.shiftKey) {
+      e.preventDefault();
+      onSubmit();
+    }
+    // Enter is handled naturally by textarea (adds newline)
+  };
+
+  const handleSendModeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Send mode: Enter sends, Shift+Enter adds newline
+    if (!e.shiftKey) {
+      e.preventDefault();
+      onSubmit();
+    }
+    // Shift+Enter is handled naturally by textarea (adds newline)
+  };
   const handleCompositionStart = () => {
     setIsComposing(true);
   };
