@@ -137,30 +137,28 @@ export async function readStreamingFile(
 ): Promise<StreamResponse[]> {
   const filePath = getStreamingFilePath(encodedProjectName, requestId, runtime);
 
-  try {
-    const content = await runtime.readTextFile(filePath);
-    const lines = content
-      .trim()
-      .split("\n")
-      .filter((line) => line.trim());
-
-    const messages: StreamResponse[] = [];
-    for (let i = fromIndex; i < lines.length; i++) {
-      try {
-        const message = JSON.parse(lines[i]) as StreamResponse;
-        messages.push(message);
-      } catch (error) {
-        console.error(`Failed to parse line ${i} in ${filePath}:`, error);
-      }
-    }
-
-    return messages;
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return [];
-    }
-    throw error;
+  // Check if file exists before reading
+  if (!(await runtime.exists(filePath))) {
+    return [];
   }
+
+  const content = await runtime.readTextFile(filePath);
+  const lines = content
+    .trim()
+    .split("\n")
+    .filter((line) => line.trim());
+
+  const messages: StreamResponse[] = [];
+  for (let i = fromIndex; i < lines.length; i++) {
+    try {
+      const message = JSON.parse(lines[i]) as StreamResponse;
+      messages.push(message);
+    } catch (error) {
+      console.error(`Failed to parse line ${i} in ${filePath}:`, error);
+    }
+  }
+
+  return messages;
 }
 
 /**
