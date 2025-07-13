@@ -41,6 +41,7 @@ export function useNetworkRecovery(options: NetworkRecoveryOptions = {}) {
 
   const retryTimeoutRef = useRef<number | null>(null);
   const messageIndexRef = useRef<number>(0);
+  const messageHistoryRef = useRef<Array<{ id: number; message: string }>>([]);
 
   /**
    * Check if an error is a network error
@@ -108,8 +109,14 @@ export function useNetworkRecovery(options: NetworkRecoveryOptions = {}) {
   /**
    * Track processed messages
    */
-  const trackMessage = useCallback(() => {
-    messageIndexRef.current++;
+  const trackMessage = useCallback((message: string) => {
+    const id = messageIndexRef.current++;
+    messageHistoryRef.current.push({ id, message });
+    // Optional: limit history size
+    if (messageHistoryRef.current.length > 100) {
+      messageHistoryRef.current.shift();
+    }
+    return id; // Return the message ID for reference
   }, []);
 
   /**

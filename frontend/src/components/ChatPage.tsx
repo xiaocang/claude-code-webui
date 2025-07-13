@@ -1,7 +1,12 @@
 import { useEffect, useCallback, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
-import type { ChatRequest, ChatMessage, ProjectInfo, StreamResponse } from "../types";
+import type {
+  ChatRequest,
+  ChatMessage,
+  ProjectInfo,
+  StreamResponse,
+} from "../types";
 import { useTheme } from "../hooks/useTheme";
 import { useClaudeStreaming } from "../hooks/useClaudeStreaming";
 import { useChatState } from "../hooks/chat/useChatState";
@@ -92,13 +97,13 @@ export function ChatPage() {
     initialSessionId: loadedSessionId || undefined,
   });
 
-  const { 
-    isRecovering, 
-    retryCount, 
-    trackMessage, 
-    resetTracking, 
+  const {
+    isRecovering,
+    retryCount,
+    trackMessage,
+    resetTracking,
     handleNetworkError,
-    cleanup: cleanupNetworkRecovery 
+    cleanup: cleanupNetworkRecovery,
   } = useNetworkRecovery({
     onNetworkError: () => {
       console.log("Network error detected, attempting recovery...");
@@ -111,7 +116,8 @@ export function ChatPage() {
       addMessage({
         type: "chat",
         role: "assistant",
-        content: "Network connection lost and could not be recovered. Please check your connection and try again.",
+        content:
+          "Network connection lost and could not be recovered. Please check your connection and try again.",
         timestamp: Date.now(),
       });
       resetRequestState();
@@ -220,7 +226,7 @@ export function ChatPage() {
 
           for (const line of lines) {
             if (shouldAbort) break;
-            
+
             // Track message for recovery
             try {
               const parsed = JSON.parse(line) as StreamResponse;
@@ -228,7 +234,7 @@ export function ChatPage() {
             } catch {
               // Ignore parse errors for tracking
             }
-            
+
             processStreamLine(line, streamingContext);
           }
 
@@ -236,7 +242,7 @@ export function ChatPage() {
         }
       } catch (error) {
         console.error("Failed to send message:", error);
-        
+
         // Try network recovery if applicable
         const recovered = await handleNetworkError(
           error,
@@ -247,9 +253,9 @@ export function ChatPage() {
               const line = JSON.stringify(message);
               processStreamLine(line, streamingContext);
             }
-          }
+          },
         );
-        
+
         if (!recovered) {
           // Non-network error or recovery failed
           addMessage({

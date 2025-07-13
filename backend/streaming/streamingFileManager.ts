@@ -4,7 +4,8 @@
  */
 
 import type { Runtime } from "../runtime/types.ts";
-import type { RequestStatus, StreamResponse } from "../../shared/types.ts";
+import type { StreamResponse } from "../../shared/types.ts";
+import { RequestStatus } from "../../shared/types.ts";
 
 export interface StreamingFileInfo {
   requestId: string;
@@ -21,7 +22,7 @@ const requestStatuses = new Map<string, StreamingFileInfo>();
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 // Start periodic cleanup
-let cleanupInterval: number | null = null;
+let cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
 export function startCleanupInterval(runtime: Runtime) {
   if (cleanupInterval) return;
