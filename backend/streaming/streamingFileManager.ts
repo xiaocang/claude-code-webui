@@ -225,3 +225,85 @@ export async function cleanupAllStreamingFiles(
     console.error(`Failed to clean up streaming directory:`, error);
   }
 }
+
+/**
+ * Get streaming messages for a specific sessionId
+ * This searches through streaming files to find messages with matching sessionId
+ */
+export async function getStreamingMessages(
+  encodedProjectName: string,
+  sessionId: string,
+  runtime: Runtime,
+): Promise<unknown[]> {
+  const streamingDir = getStreamingDir(encodedProjectName, runtime);
+
+  // Check if streaming directory exists
+  if (!(await runtime.exists(streamingDir))) {
+    return [];
+  }
+
+  const messages: unknown[] = [];
+
+  try {
+    // List all files in the streaming directory
+    const entries: string[] = [];
+    for await (const entry of runtime.readDir(streamingDir)) {
+      if (entry.isFile && entry.name.endsWith(".jsonl")) {
+        entries.push(entry.name);
+      }
+    }
+
+    // Process each streaming file
+    for (const file of entries) {
+      const filePath = `${streamingDir}/${file}`;
+      const content = await runtime.readTextFile(filePath);
+      const lines = content
+        .trim()
+        .split("\n")
+        .filter((line) => line.trim());
+
+      // Check each message for matching sessionId
+      for (const line of lines) {
+        try {
+          const parsed = JSON.parse(line);
+
+          // Check if this is a claude_json message with SDK content
+          if (
+            parsed.type === "claude_json" &&
+            parsed.content?.type === "sdk"
+          ) {
+            const sdkMessage = parsed.content.message;
+
+            // Extract sessionId from different message types
+            let messageSessionId: string | undefined;
+
+            if (sdkMessage.type === "system" && sdkMessage.session_id) {
+              messageSessionId = sdkMessage.session_id;
+            } else if (
+              sdkMessage.type === "assistant" &&
+              sdkMessage.session_id
+            ) {
+              messageSessionId = sdkMessage.session_id;
+            } else if (
+              sdkMessage.type === "result" &&
+              sdkMessage.session_id
+            ) {
+              messageSessionId = sdkMessage.session_id;
+            }
+
+            // If sessionId matches, add the SDK message
+            if (messageSessionId === sessionId) {
+              messages.push(sdkMessage);
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to parse streaming message:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Failed to read streaming directory:`, error);
+  }
+
+  return messages;
+}
