@@ -41,4 +41,3 @@ export function EnterBehaviorProvider({
     </EnterBehaviorContext.Provider>
   );
 }
-
