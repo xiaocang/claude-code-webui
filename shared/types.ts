@@ -51,3 +51,30 @@ export interface ConversationHistory {
   };
 }
 
+// Resume API types
+export interface ResumeRequest {
+  requestId: string;
+  fromIndex?: number;
+}
+
+export interface ResumeResponse {
+  messages: StreamResponse[];
+  totalMessages: number;
+  isComplete: boolean;
+}
+
+// Status API types
+export enum RequestStatus {
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  ABORTED = "aborted",
+  NOT_FOUND = "not_found",
+}
+
+export interface StatusResponse {
+  requestId: string;
+  status: RequestStatus;
+  totalMessages: number;
+  lastUpdated: string;
+}
