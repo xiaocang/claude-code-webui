@@ -7,12 +7,10 @@ import type {
 
 // Re-export shared types for frontend use
 export type {
-  StreamResponse,
-  ChatRequest,
   ResumeResponse,
   StatusResponse,
   RequestStatus,
-} from "../../../shared/types";
+} from "../../shared/types";
 
 // Chat message for user/assistant interactions (not part of SDKMessage)
 export interface ChatMessage {

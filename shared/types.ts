@@ -64,13 +64,15 @@ export interface ResumeResponse {
 }
 
 // Status API types
-export enum RequestStatus {
-  IN_PROGRESS = "in_progress",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  ABORTED = "aborted",
-  NOT_FOUND = "not_found",
-}
+export const RequestStatus = {
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  ABORTED: "aborted",
+  NOT_FOUND: "not_found",
+} as const;
+
+export type RequestStatus = (typeof RequestStatus)[keyof typeof RequestStatus];
 
 export interface StatusResponse {
   requestId: string;

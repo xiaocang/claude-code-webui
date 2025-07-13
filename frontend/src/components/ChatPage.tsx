@@ -173,6 +173,32 @@ export function ChatPage() {
       startRequest();
       resetTracking(); // Reset message tracking for new request
 
+      // Local state for this streaming session
+      let localHasReceivedInit = false;
+      let shouldAbort = false;
+
+      const streamingContext: StreamingContext = {
+        currentAssistantMessage,
+        setCurrentAssistantMessage,
+        addMessage,
+        updateLastMessage,
+        onSessionId: setCurrentSessionId,
+        shouldShowInitMessage: () => !hasShownInitMessage,
+        onInitMessageShown: () => setHasShownInitMessage(true),
+        get hasReceivedInit() {
+          return localHasReceivedInit;
+        },
+        setHasReceivedInit: (received: boolean) => {
+          localHasReceivedInit = received;
+          setHasReceivedInit(received);
+        },
+        onPermissionError: handlePermissionError,
+        onAbortRequest: async () => {
+          shouldAbort = true;
+          await createAbortHandler(requestId)();
+        },
+      };
+
       try {
         const response = await fetch(getChatUrl(), {
           method: "POST",
@@ -191,32 +217,6 @@ export function ChatPage() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
-        // Local state for this streaming session
-        let localHasReceivedInit = false;
-        let shouldAbort = false;
-
-        const streamingContext: StreamingContext = {
-          currentAssistantMessage,
-          setCurrentAssistantMessage,
-          addMessage,
-          updateLastMessage,
-          onSessionId: setCurrentSessionId,
-          shouldShowInitMessage: () => !hasShownInitMessage,
-          onInitMessageShown: () => setHasShownInitMessage(true),
-          get hasReceivedInit() {
-            return localHasReceivedInit;
-          },
-          setHasReceivedInit: (received: boolean) => {
-            localHasReceivedInit = received;
-            setHasReceivedInit(received);
-          },
-          onPermissionError: handlePermissionError,
-          onAbortRequest: async () => {
-            shouldAbort = true;
-            await createAbortHandler(requestId)();
-          },
-        };
-
         while (true) {
           const { done, value } = await reader.read();
           if (done || shouldAbort) break;
@@ -228,12 +228,7 @@ export function ChatPage() {
             if (shouldAbort) break;
 
             // Track message for recovery
-            try {
-              const parsed = JSON.parse(line) as StreamResponse;
-              trackMessage(parsed);
-            } catch {
-              // Ignore parse errors for tracking
-            }
+            trackMessage(line);
 
             processStreamLine(line, streamingContext);
           }
