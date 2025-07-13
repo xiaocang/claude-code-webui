@@ -29,14 +29,13 @@ export function EnterBehaviorProvider({
     localStorage.setItem("enterBehavior", enterBehavior);
   }, [enterBehavior, isInitialized]);
 
-  const toggleEnterBehavior = () => {
+  const toggleEnterBehavior = useCallback(() => {
     setEnterBehavior((prev) => (prev === "send" ? "newline" : "send"));
-  };
+  }, []);
 
   return (
-    <EnterBehaviorContext.Provider
-      value={{ enterBehavior, toggleEnterBehavior }}
-    >
+    const value = useMemo(() => ({ enterBehavior, toggleEnterBehavior }), [enterBehavior, toggleEnterBehavior]);
+    <EnterBehaviorContext.Provider value={value}>
       {children}
     </EnterBehaviorContext.Provider>
   );
