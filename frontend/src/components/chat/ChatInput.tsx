@@ -61,7 +61,9 @@ export function ChatInput({
     }
   };
 
-  const handleNewlineModeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleNewlineModeKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
     // Newline mode: Enter adds newline, Shift+Enter sends
     if (e.shiftKey) {
       e.preventDefault();
@@ -70,7 +72,9 @@ export function ChatInput({
     // Enter is handled naturally by textarea (adds newline)
   };
 
-  const handleSendModeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleSendModeKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
     // Send mode: Enter sends, Shift+Enter adds newline
     if (!e.shiftKey) {
       e.preventDefault();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { EnterBehavior } from "../types/enterBehavior";
 import { EnterBehaviorContext } from "./EnterBehaviorContextDefinition";
 
@@ -33,8 +33,12 @@ export function EnterBehaviorProvider({
     setEnterBehavior((prev) => (prev === "send" ? "newline" : "send"));
   }, []);
 
+  const value = useMemo(
+    () => ({ enterBehavior, toggleEnterBehavior }),
+    [enterBehavior, toggleEnterBehavior],
+  );
+
   return (
-    const value = useMemo(() => ({ enterBehavior, toggleEnterBehavior }), [enterBehavior, toggleEnterBehavior]);
     <EnterBehaviorContext.Provider value={value}>
       {children}
     </EnterBehaviorContext.Provider>
